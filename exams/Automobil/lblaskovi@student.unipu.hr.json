@@ -1,0 +1,21 @@
+{
+  "examData": {
+    "exam_start": "13h 58m 58s - 29/02/2024",
+    "exam_end": "14h 2m 59s - 29/02/2024",
+    "exam_duration": "4m ",
+    "form": {
+      "ime": "Luka",
+      "prezime": "Blašković",
+      "JMBAG": "0303088177",
+      "password": "Automobil"
+    },
+    "exam_solutions": [
+      {
+        "id": 1,
+        "html_code": "\n<!DOCTYPE html>\n<html>\n    <head>\n        <title>Naslov vježbe ovdje</title>\n        <style>\n            /* CSS sadržaj ovdje */\n        </style>\n    </head>\n<body>\n<!-- HTML sadržaj ovdje -->\n<h1>Hello world!</h1>\n</body>\n\n</html>\n",
+        "js_code": "function Automobil(marka, model, godina_proizvodnje, boja, cijena){\n  this.marka = marka,\n  this.model = model,\n  this.godina_proizvodnje = godina_proizvodnje,\n  this.boja = boja,\n  this.cijena = cijena,\n  \n  function azurirajCijenu(novaCijena) {this.cijena = novaCijena;},\n  function detalji() {\n    console.log(`Ovo je autmoboil {this.marka} {this.model} proizveden {this.godina_proizvodnje godine. Boja je {this.boja} i kosta {this.cijena} eura!`);\n  }\n}\n\nlet audi = new Automobil(\"Audi\", \"A5\", 2018, \"bijela\", 20000)\naudi.azurirajCijenu(18000);\naudi.detalji();",
+        "status": "U tijeku"
+      }
+    ]
+  }
+}
