@@ -1,40 +1,49 @@
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
+import asyncio
 import json
 import os
 import dotenv
+from helpers.file_operations import export_dict_to_csv, read_file_content
 
 dotenv.load_dotenv()
 
-client = OpenAI(
+client = AsyncOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-def evaluate_student_submission(instructions, tasks_text, student_code, student_email, exam_password):
-  prompt = f"{instructions}\n\n###{tasks_text}\n\n### Student's Code:\n{student_code}\n\n### Evaluation:\nPlease return a structured response with the following format: '{{\"task_1\": \"task_1_points\", \"task_2\": \"task_2_points\", \"total_points\": \"total_points_here\", \"feedback\": \"feedback_here\"}}'. Please provide task points for each task."
-  print("prompt", prompt)
-  
-  response  = client.chat.completions.create(
-      model= "gpt-4-turbo-preview",
-      response_format={"type": "json_object"},
-      messages=[
-          {"role": "system", "content": "You're a professor grading JavaScript exams of first-year students designed to output JSON structured responses."},
-          {"role": "user", "content": prompt}
-      ],
-      temperature=0.2,
-  )
-  
-  response_str = response.choices[0].message.content
-  json_response = json.loads(response_str)
-  return json_response
+def evaluate(instructions, tasks_text, student_code, student_email, exam_password):
+    prompt = f"{instructions}\n\n###{tasks_text}\n\n### Student's Code:\n{student_code}\n\n### Evaluation:\nPlease return a structured response with the following format: '{{\"task_1\": \"task_1_points\", \"task_2\": \"task_2_points\", \"total_points\": \"total_points_here\", \"feedback\": \"feedback_here\"}}'. Please provide task points for each task."
+    
+    json_response = {}
+    json_response['student_email'] = student_email
+    json_response['exam_password'] = exam_password
+    
+    """
+    response  = await client.chat.completions.create(
+        model= "gpt-4-turbo-preview",
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You're a professor grading JavaScript exams of first-year students designed to output JSON structured responses."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+    )
+    """
+    
+    response_data = {'student_email': 'lblaskovi@student.unipu.hr', 'exam_password': 'matematika', 'task_1': '5', 'task_2': '4.5', 'total_points': '9.5', 'feedback': 'ZADATAK 1: Funkcija ispravno implementira Pitagorin poučak i vraća očekivani rezultat. ZADATAK 2: Funkcija ispravno provjerava je li ulaz broj i vraća 10 brojeva većih od n, ali nije specificirano kako se ispisuju brojevi u binarnom obliku ili zaokruženi na dvije decimale u konzolu.'}
+    
+    output_file = f"results/{exam_password}/{student_email}.csv"
+    
+    #response_data = json.loads(response.choices[0].message.content) 
+    json_response.update(response_data) 
+    
+    export_dict_to_csv(json_response, output_file)
+    
+    return json_response
 
-instructions = """
-Evaluate student code based on correctness, partial correctness (like semi-correct logic or syntax errors), and effort (like pseudocode). 
-Ignore variable naming, spacing, encoding errors (č, ć, š, đ), and unmentioned edge cases. Assign points (up to 10 total, with possible .5 increments) and provide feedback in Croatian in 2 sentence maximum for each task only. Do not provide general feedback.
+instructions = read_file_content("instructions.txt")
 
-Instructions:
-Assign points for each task, ensuring the total doesn't exceed 10.
-Use whole numbers or .5 increments for points.
-"""
+print("instructions", instructions)
 
 tasks_text = """
 Tasks are as follows:
@@ -79,6 +88,6 @@ console.log(fun(5.5));
 student_email = "lblaskovi@student.unipu.hr"
 exam_password = "matematika"
 
-evaluation = evaluate_student_submission(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam_password)
+evaluation = evaluate(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam_password)
 
 print("RESULT:", evaluation)

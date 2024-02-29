@@ -1,0 +1,8 @@
+{
+  "student_email": "lblaskovi@student.unipu.hr",
+  "exam_password": "matematika",
+  "task_1": "5",
+  "task_2": "4.5",
+  "total_points": "9.5",
+  "feedback": "ZADATAK 1: Funkcija ispravno implementira Pitagorin poučak i vraća očekivani rezultat. ZADATAK 2: Funkcija ispravno provjerava je li ulaz broj i vraća 10 brojeva većih od n, ali nije specificirano kako se ispisuju brojevi u binarnom obliku ili zaokruženi na dvije decimale u konzolu."
+}
