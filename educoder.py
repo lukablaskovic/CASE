@@ -16,50 +16,81 @@ BUCKET_NAME = os.getenv("BUCKET_NAME")
 db = firestore.client()
 bucket = storage.bucket(BUCKET_NAME)
 
-def educoder_fetch(collection: str = "exams"):
-    docs = db.collection(collection).stream()
+def educoder_fetch(collection: str = "exams", parent_path: str = "", depth: int = 0, max_depth: int = 1):
+    """
+    Fetch documents from a Firebase collection, including nested collections up to a specified depth.
+    
+    :param collection: The name of the collection to fetch from.
+    :param parent_path: The Firestore path of the parent collection (used for recursion).
+    :param depth: The current depth of recursion.
+    :param max_depth: The maximum depth to fetch nested collections.
+    :return: A list of documents, including nested documents up to max_depth.
+    """
+    full_path = f"{parent_path}/{collection}" if parent_path else collection
+    docs = db.collection(full_path).stream()
     doc_list = []
+
     for doc in docs:
-        print(f'=> {doc.id}', end='\n')
-        doc_list.append(doc.to_dict()) 
-        
+        doc_dict = {"id": doc.id, "fields": doc.to_dict()}
+
+        if depth < max_depth:
+            subcollections = doc.reference.collections()
+            nested_docs = {}
+            for subcol in subcollections:
+                subcol_docs = educoder_fetch(subcol.id, parent_path=f"{full_path}/{doc.id}", depth=depth + 1, max_depth=max_depth)
+                if subcol_docs:
+                    nested_docs[subcol.id] = subcol_docs
+            if nested_docs:
+                doc_dict['nested'] = nested_docs
+
+        doc_list.append(doc_dict)
+
     return doc_list
 
 def educoder_fetch_exam_solutions(filepath: str, student: str = "", save: bool = False):
     blobs = list(bucket.list_blobs(prefix=filepath))
-    assert len(blobs) > 0, f"No files found in {filepath}"
-    student_file = f"{student}.json" if student else "everyone.json"
-    found = False
+    if len(blobs) < 1: 
+        return f"No files found in {filepath}"
+
+    solutions = []
 
     for blob in blobs:
-        if blob.name.endswith('placeholder.txt'):
+        if blob.name.endswith('placeholder.txt') or not blob.name.endswith('.json'):
             continue
-        
-        if student and not blob.name.endswith(student_file):
-            continue 
 
-        if not blob.name.endswith('.json'):
-            continue 
-
-        print(f"Loaded: {blob.name}")
-        found = True
-
-        if save:
-            path = blob.name.replace('/', os.sep)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            blob.download_to_filename(path)
+        if student:
+            student_file = f"{student}.json"
+            if blob.name.endswith(student_file):
+                print(f"Loaded: {blob.name}")
+                if save:
+                    save_blob(blob)
+                else:
+                    return blob.download_as_text()
+                break
         else:
-            blob_content = blob.download_as_text()
-            return blob_content
+            if save:
+                save_blob(blob)
+            else:
+                solutions.append(blob.download_as_text())
 
-    if not found:
-        return "No matching files found."
+    if student:
+        return "No matching files found for the specified student."
+    else: return solutions
+
+def save_blob(blob):
+    """
+    Helper function to save the blob to the local filesystem.
+    """
+    path = blob.name.replace('/', os.sep)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    blob.download_to_filename(path)
+    print(f" Saved: {path}")
+
 
 def print_json(data):
     """
     Prints the provided data in a JSON-readable format.
     """
-
     print(json.dumps(data, indent=4, sort_keys=True))
 
     
