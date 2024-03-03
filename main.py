@@ -10,25 +10,24 @@ app = typer.Typer()
 console = Console()
 
 educoder_connector = typer.Typer()
-app.add_typer(educoder_connector, name="educoder")
+app.add_typer(educoder_connector, name="educoder", help="Commands to interact with 💻 EduCoder")
 
 default_app = typer.Typer()
-app.add_typer(default_app, name="")
+app.add_typer(default_app, name="", help="CASE - Coding Assessment & Scoring Engine")
 
 def description():
     description = """
 # CASE - Coding Assessment & Scoring Engine
 
-CASE is a powerful CLI tool which helps you evaluate and score coding assessments. 
-It is designed to work with 💻**EduCoder**, a platform for creating and managing coding assessments, but you can also use it manually.
+**CASE** is a powerful CLI tool which helps you evaluate and score coding assessments. 
+It is designed to work with 💻 **EduCoder**, a platform for creating and managing coding assessments, but you can also use it manually.
 
-- Fetch data from 💻EduCoder
-- Fetch exam solutions
+- Fetch data from 💻 EduCoder
+- Fetch exam solutions from 💻 EduCoder
 - Evaluate and score coding assessments using GPT-4
+- Define custom scoring rubrics
 - Generate reports and insights
-- Export data to Google Sheets
-
-Enjoy the **rich** experience!
+- Many data export options
     """
     md = Markdown(description)
     console.print(md)
@@ -36,7 +35,7 @@ Enjoy the **rich** experience!
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
     """
-    Welcome to My Fancy CLI.
+    CASE is a powerful CLI tool which helps you evaluate and score coding assessments. It is designed to work with 💻 EduCoder, a platform for creating and managing coding assessments, but you can also use it manually.
     """
     if ctx.invoked_subcommand is None:
         description()
@@ -50,7 +49,7 @@ def fetch(collection: Annotated[str, typer.Argument(help="Firebase collection to
         docs = educoder_fetch(collection=collection)
     
     if printall:
-        typer.echo(f"✏️  Printing '{collection}' collection...")
+        typer.echo(f"🖨️  Printing '{collection}' collection...")
         print_json(docs)
     else:
         num_docs = len(docs)
