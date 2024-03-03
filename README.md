@@ -1,1 +1,1 @@
-# CodeJudge
+# CASE - Coding Assessment & Scoring Engine
