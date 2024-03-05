@@ -1,6 +1,6 @@
 import typer
 from typing_extensions import Annotated
-from educoder import educoder_fetch, educoder_fetch_exam_solutions, print_json
+from educoder import educoder_fetch, educoder_fetch_exam_solutions, print_json, extract_code_from_solutions
 from rich.console import Console
 from rich.spinner import Spinner
 from rich.markdown import Markdown
@@ -43,7 +43,7 @@ def main(ctx: typer.Context):
 # EduCoder commands
 
 @educoder_connector.command()
-def fetch(collection: Annotated[str, typer.Argument(help="Firebase collection to fetch from.")] = "exams", printall: Annotated[bool, typer.Option(help="Print the fetched data in CLI.")] = False):
+def get_docs(collection: Annotated[str, typer.Argument(help="Firebase collection to fetch from.")] = "exams", printall: Annotated[bool, typer.Option(help="Print the fetched data in CLI.")] = False):
     
     with console.status("Fetching from 💻 EduCoder...", spinner="dots"):
         docs = educoder_fetch(collection=collection)
@@ -62,9 +62,12 @@ def fetch(collection: Annotated[str, typer.Argument(help="Firebase collection to
 
 
 @educoder_connector.command()
-def solutions(exam: Annotated[str, typer.Argument(help="Enter exam code")],
+def get_solutions(exam: Annotated[str, typer.Argument(help="Enter exam code")],
               student: Annotated[str, typer.Argument(help="Enter student email", rich_help_panel="Optional arguments")] = "",
-              save: Annotated[bool, typer.Option(help="Save the fetched data.")] = False):
+              save: Annotated[bool, typer.Option(help="Saves the fetched data")] = False):
+    """
+    Pull exam solutions from 💻 EduCoder. EXAM argument is required.
+    """
     filepath = f"exams/{exam}" # Firebase Storage path
     with console.status("Fetching exam solutions from 💻 EduCoder...", spinner = "dots"):
         data = educoder_fetch_exam_solutions(filepath, student=student, save = save)
@@ -72,11 +75,22 @@ def solutions(exam: Annotated[str, typer.Argument(help="Enter exam code")],
     if (data):
         print(data)
 
+@educoder_connector.command()
+def extract_solutions(exam: Annotated[str, typer.Argument(help="Enter exam code")],
+                    js: Annotated[bool, typer.Option(help="Extract JavaScript code from exam solutions")] = False,
+                    html: Annotated[bool, typer.Option(help="Extract HTML code from exam solutions")] = False):
+    """
+    Extract JavaScript code from exam solutions. EXAM argument is required.
+    """
+    exam_folder = f"exams/{exam}"
+    if (not html and not js):
+        js = True # Default to JavaScript if no option is provided
+    result = extract_code_from_solutions(exam_folder, js, html)
+    print(result)
 
 @default_app.command()
 def test(username: str):
     typer.echo(f"User {username} logged in")
-
 
 if __name__ == "__main__":
     app()

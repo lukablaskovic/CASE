@@ -16,6 +16,8 @@ BUCKET_NAME = os.getenv("BUCKET_NAME")
 db = firestore.client()
 bucket = storage.bucket(BUCKET_NAME)
 
+ADMINS = ["lblaskovi@student.unipu.hr", "azuzic@student.unipu.hr", "ntankov@unipu.hr"]
+
 def educoder_fetch(collection: str = "exams", parent_path: str = "", depth: int = 0, max_depth: int = 1):
     """
     Fetch documents from a Firebase collection, including nested collections up to a specified depth.
@@ -49,13 +51,18 @@ def educoder_fetch(collection: str = "exams", parent_path: str = "", depth: int 
 
 def educoder_fetch_exam_solutions(filepath: str, student: str = "", save: bool = False):
     blobs = list(bucket.list_blobs(prefix=filepath))
-    if len(blobs) < 1: 
+    if len(blobs) < 2:  # 2 - because of the placeholder.txt file
         return f"No files found in {filepath}"
 
     solutions = []
 
     for blob in blobs:
         if blob.name.endswith('placeholder.txt') or not blob.name.endswith('.json'):
+            continue
+        
+        # Admin files are not fetched by default
+        is_admin_file = any(admin_email in blob.name for admin_email in ADMINS)
+        if is_admin_file and not student:
             continue
 
         if student:
@@ -75,7 +82,9 @@ def educoder_fetch_exam_solutions(filepath: str, student: str = "", save: bool =
 
     if student:
         return "No matching files found for the specified student."
-    else: return solutions
+    else:
+        return solutions
+
 
 def save_blob(blob):
     """
@@ -93,4 +102,49 @@ def print_json(data):
     """
     print(json.dumps(data, indent=4, sort_keys=True))
 
+
+def extract_code_from_solutions(exam_folder, js=True, html=False):
     
+    if not os.listdir(exam_folder):
+        return "The exam folder is empty. No code snippets to extract."
+    
+    code_folder = os.path.join(exam_folder, "code_solutions")
+    os.makedirs(code_folder, exist_ok=True)
+
+    for filename in os.listdir(exam_folder):
+        filepath = os.path.join(exam_folder, filename)
+        if os.path.isfile(filepath) and filename.endswith('.json'):
+            with open(filepath, 'r') as file:
+                data = json.load(file)
+
+            code_snippets = []
+
+            for solution in data['examData']['exam_solutions']:
+                snippet = {}
+                if js and 'js_code' in solution:
+                    snippet['js_code'] = solution['js_code']
+                if html and 'html_code' in solution and solution['html_code'].strip():
+                    snippet['html_code'] = solution['html_code']
+
+                if snippet:
+                    code_snippets.append(snippet)
+
+            if code_snippets:
+                code_data = {
+                    "code_snippets": code_snippets
+                }
+
+                prefix = "code"
+                if js and not html:
+                    prefix = "js_code"
+                elif html and not js:
+                    prefix = "html_code"
+                elif js and html:
+                    prefix = "js_html_code"
+
+                new_filename = f"{prefix}_{filename}"
+                new_filepath = os.path.join(code_folder, new_filename)
+                with open(new_filepath, 'w') as new_file:
+                    json.dump(code_data, new_file, indent=4)
+
+    return f"Code snippets have been extracted and saved in {code_folder}."
