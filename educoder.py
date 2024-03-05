@@ -10,10 +10,9 @@ load_dotenv()
 
 cred = credentials.Certificate('./edu-coder-creds.json')
 firebase_admin.initialize_app(cred)
-
 BUCKET_NAME = os.getenv("BUCKET_NAME")
-
 db = firestore.client()
+
 bucket = storage.bucket(BUCKET_NAME)
 
 ADMINS = ["lblaskovi@student.unipu.hr", "azuzic@student.unipu.hr", "ntankov@unipu.hr"]
@@ -102,6 +101,16 @@ def print_json(data):
     """
     print(json.dumps(data, indent=4, sort_keys=True))
 
+def solutions_extracted(exam: str):
+    exam_folder = f"exams/{exam}"
+    """
+    Checks if solutions have been extracted to the code folder inside the specified exam folder.
+    
+    :param exam_folder: The path to the exam folder where solutions are expected to be stored.
+    :return: True if solutions have been extracted and found in the code folder, False otherwise.
+    """
+    code_folder = os.path.join(exam_folder, "code_solutions")
+    return os.path.isdir(code_folder) and bool(os.listdir(code_folder))
 
 def extract_code_from_solutions(exam_folder, js=True, html=False):
     
