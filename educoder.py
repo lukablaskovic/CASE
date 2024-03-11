@@ -123,7 +123,7 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
     for filename in os.listdir(exam_folder):
         filepath = os.path.join(exam_folder, filename)
         if os.path.isfile(filepath) and filename.endswith('.json'):
-            with open(filepath, 'r') as file:
+            with open(filepath, 'r', encoding="utf-8") as file:
                 data = json.load(file)
 
             code_snippets = []

@@ -2,6 +2,7 @@ import asyncio
 from functools import wraps
 
 import os
+import subprocess
 import json
 import typer
 from typing_extensions import Annotated
@@ -121,21 +122,44 @@ async def evaluate_solutions(code_folder, exam):
     instructions = read_file_content("instructions.txt")
     tasks_text = read_file_content("text_a_new_hope.txt")
     
+    markdown_content = f"# Exam Tasks\n\n{tasks_text}\n\n"
+    total_cost = 0 
+
     for filename in os.listdir(code_folder):
         if filename.startswith('js_code') and filename.endswith('.json'):
             filepath = os.path.join(code_folder, filename)
             json_data = read_file_content(filepath)
             student_code = concatenate_js_code(json_data)
-            
-
             student_email = filename[len('js_code_'):-len('.json')]
 
-            await call_evaluator(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam)
+            json_response = await call_evaluator(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam)
+
+            total_cost += json_response.get('total_cost', 0)
+
+            markdown_content += f"## {student_email}\n\n### Code\n\n```javascript\n{student_code}\n```\n\n### Evaluation\n\n"
+            markdown_content += f"- Task 1: {json_response['task_1']}\n"
+            markdown_content += f"- Task 2: {json_response['task_2']}\n"
+            markdown_content += f"- Total Points: {json_response['total_points']}\n"
+            markdown_content += f"- Feedback: {json_response['feedback']}\n"
+            markdown_content += f"- Cost for this evaluation: ${json_response.get('total_cost', 0):.2f}\n\n"
+
+    markdown_content += f"\n\n# Total Cost for Evaluating {exam}\n"
+    markdown_content += f"Total cost for running evaluations: ${total_cost:.2f}"
+
+    markdown_file = f"{exam}_report.md"
+    with open(markdown_file, 'w', encoding="utf-8") as file:
+        file.write(markdown_content)
+
+    pdf_file = f"{exam}_report.pdf"
+    subprocess.run(['pandoc', markdown_file, '-o', pdf_file])
+
+    print(f"PDF report generated: {pdf_file}")
+
 
 
 @default_app.command()
 @typer_async
-async def evaluate(exam: str):
+async def evaluate(exam: str, pdf: Annotated[bool, typer.Option(help="Generate PDF report")] = False):
     code_folder = f"exams/{exam}/code_solutions"
     if not solutions_extracted(exam):
         console.print("Exam solutions not extracted or no solutions available. Please run the 'educoder extract-solutions' command first.")
