@@ -12,7 +12,7 @@ client = AsyncOpenAI(
 )
 
 async def call_evaluator(instructions, tasks_text, student_code, student_email, exam_password):
-    prompt = f"{instructions}\n\n###{tasks_text}\n\n### Student's Code:\n{student_code}\n\n### Evaluation:\nPlease return a structured response with the following format: '{{\"task_1\": \"task_1_points\", \"task_2\": \"task_2_points\", \"total_points\": \"total_points_here\", \"feedback\": \"feedback_here\"}}'. Please provide task points for each task."
+    prompt = f"{instructions}\n\n###{tasks_text}\n\n### Student's Code:\n{student_code}\n\n### Evaluation:\nPlease return a structured response with the following format: '{{\"task_1\": \"task_1_points\", \"task_2\": \"task_2_points\", \"total_points\": \"total_points_here\", \"feedback\": \"feedback_here\"}}'. Please provide task points for each task. Provide task_x: 0 for task with with no solution ([NOT_SOLVED])."
 
     json_response = {}
     json_response['student_email'] = student_email
@@ -45,53 +45,8 @@ async def call_evaluator(instructions, tasks_text, student_code, student_email, 
     response_data = json.loads(response.choices[0].message.content) 
     json_response.update(response_data) 
     
-    output_file = f"results/{exam_password}/{student_email}.csv"
-    
-    export_dict_to_csv(json_response, output_file)
+    output_dir = f"results/{exam_password}/"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     
     return json_response
-
-
-
-
-
-student_code = """
-#ZADATAK_1
-  <script>
-function hipotenuza(a, b) {
-let c = Math.sqrt(Math.pow(a,2)+Math.pow(b,2))
-return `Dužina hipotenuze je: ${c}`
-}
-console.log(hipotenuza(3, 4));
-</script>
-#ZADATAK_2
-function fun(n) {
-if (typeof(n) != 'number') { return "Nije broj!"}
-else {
-  let sum = ""
-  for (let i = n+1; i<=n+10;i++) {
-    if (Number.isInteger(i)){
-      sum+=i.toString(2)
-    }
-    else {
-      sum+=i.toFixed(2)
-    }
-    if (i!=n+10) {
-      sum+=", "
-    }
-  }
-  return sum;
-}
-}
-
-console.log(fun(5));
-
-console.log(fun(5.5));
-  """
-    
-student_email = "lblaskovi@student.unipu.hr"
-exam_password = "matematika"
-
-#evaluation = evaluator(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam_password)
-
-#print("RESULT:", evaluation)

@@ -131,9 +131,9 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
             for solution in data['examData']['exam_solutions']:
                 snippet = {}
                 if js and 'js_code' in solution:
-                    snippet['js_code'] = solution['js_code']
-                if html and 'html_code' in solution and solution['html_code'].strip():
-                    snippet['html_code'] = solution['html_code']
+                    snippet['js_code'] = solution['js_code'] if solution['js_code'].strip() else "[NOT_SOLVED]"
+                if html and 'html_code' in solution:
+                    snippet['html_code'] = solution['html_code'] if solution['html_code'].strip() else "[NOT_SOLVED]"
 
                 if snippet:
                     code_snippets.append(snippet)
@@ -153,7 +153,7 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
 
                 new_filename = f"{prefix}_{filename}"
                 new_filepath = os.path.join(code_folder, new_filename)
-                with open(new_filepath, 'w') as new_file:
+                with open(new_filepath, 'w', encoding="utf-8") as new_file:
                     json.dump(code_data, new_file, indent=4)
 
     return f"Code snippets have been extracted and saved in {code_folder}."

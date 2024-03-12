@@ -14,7 +14,7 @@ from rich import print
 
 from educoder import educoder_fetch, educoder_fetch_exam_solutions, print_json, extract_code_from_solutions, solutions_extracted
 from evaluator import call_evaluator
-from helpers.file_operations import read_file_content
+from helpers.file_operations import read_file_content, export_dict_to_csv
 
 app = typer.Typer()
 console = Console()
@@ -113,35 +113,55 @@ def extract_solutions(exam: Annotated[str, typer.Argument(help="Enter exam code"
     result = extract_code_from_solutions(exam_folder, js, html)
     print(result)
 
-def concatenate_js_code(json_data):
-    data_dict = json.loads(json_data) 
-    code_snippets = data_dict.get('code_snippets', [])
-    return '\n\n'.join([snippet['js_code'] for snippet in code_snippets if 'js_code' in snippet and snippet['js_code'].strip()])
+async def evaluate_solution(filepath, instructions, tasks_text, exam):
+    # Reading the entire JSON content from the file
+    json_data = read_file_content(filepath)
+    
+    json_response = await call_evaluator(
+        instructions=instructions,
+        tasks_text=tasks_text,
+        student_code=json_data, 
+        student_email=filepath.split('/')[-1].replace('js_code_', '').replace('.json', ''),
+        exam_password=exam
+    )
+
+    return filepath.split('/')[-1].replace('js_code_', '').replace('.json', ''), json_data, json_response
+
 
 async def evaluate_solutions(code_folder, exam):
     instructions = read_file_content("instructions.txt")
-    tasks_text = read_file_content("text_a_new_hope.txt")
-    
+    tasks_text = read_file_content("text_PJS_ex1v2_RntC3e.txt")
+
     markdown_content = f"# Exam Tasks\n\n{tasks_text}\n\n"
-    total_cost = 0 
+    total_cost = 0
 
-    for filename in os.listdir(code_folder):
-        if filename.startswith('js_code') and filename.endswith('.json'):
-            filepath = os.path.join(code_folder, filename)
-            json_data = read_file_content(filepath)
-            student_code = concatenate_js_code(json_data)
-            student_email = filename[len('js_code_'):-len('.json')]
+    filepaths = [
+        os.path.join(code_folder, filename)
+        for filename in os.listdir(code_folder)
+        if filename.startswith('js_code') and filename.endswith('.json')
+    ]
 
-            json_response = await call_evaluator(instructions=instructions, tasks_text=tasks_text, student_code=student_code, student_email=student_email, exam_password=exam)
+    evaluations = await asyncio.gather(*[
+        evaluate_solution(filepath, instructions, tasks_text, exam)
+        for filepath in filepaths
+    ])
 
-            total_cost += json_response.get('total_cost', 0)
+    all_responses = [] 
 
-            markdown_content += f"## {student_email}\n\n### Code\n\n```javascript\n{student_code}\n```\n\n### Evaluation\n\n"
-            markdown_content += f"- Task 1: {json_response['task_1']}\n"
-            markdown_content += f"- Task 2: {json_response['task_2']}\n"
-            markdown_content += f"- Total Points: {json_response['total_points']}\n"
-            markdown_content += f"- Feedback: {json_response['feedback']}\n"
-            markdown_content += f"- Cost for this evaluation: ${json_response.get('total_cost', 0):.2f}\n\n"
+    for student_email, student_code, json_response in evaluations:
+        total_cost += json_response.get('total_cost', 0)
+        all_responses.append(json_response)  # Add each response to the collection
+
+        markdown_content += f"## {student_email}\n\n### Code\n\n```javascript\n{student_code}\n```\n\n### Evaluation\n\n"
+        
+        for i in range(10):
+            task_key = f'task_{i + 1}'
+            if task_key in json_response:
+                markdown_content += f"- Task {i + 1}: {json_response[task_key]}\n"
+        
+        markdown_content += f"\n- Total Points: {json_response['total_points']}\n"
+        markdown_content += f"- Feedback: {json_response['feedback']}\n"
+        markdown_content += f"- Cost for this evaluation: ${json_response.get('total_cost', 0):.2f}\n\n"
 
     markdown_content += f"\n\n# Total Cost for Evaluating {exam}\n"
     markdown_content += f"Total cost for running evaluations: ${total_cost:.2f}"
@@ -154,6 +174,16 @@ async def evaluate_solutions(code_folder, exam):
     subprocess.run(['pandoc', markdown_file, '-o', pdf_file])
 
     print(f"PDF report generated: {pdf_file}")
+
+    output_dir = f"results/{exam}/"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_file = f"{output_dir}evaluations.csv"
+    export_dict_to_csv(all_responses, output_file)
+
+    print(f"All evaluations exported to CSV: {output_file}")
+
 
 
 

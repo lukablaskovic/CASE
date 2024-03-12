@@ -1,0 +1,42 @@
+**1.** Deklarirajte varijable `datum_danas` i `vlaga`. U varijablu `datum_danas` spremite datum današnjeg dana koristeći `new Date()` objekt, a u varijablu `vlaga` spremite proizvoljnu vrijednost vlage kao decimalni broj od `0` do max `1`.
+- Dodajte novu varijablu `mjesec` u koju ćete pohraniti trenutni mjesec koristeći `getMonth()` funkciju nad varijablom `datum_danas`, pripazite da `getMonth()` vraća mjesec kao broj od 0 do 11. Varijablu `vlaga` pretvorite u postotak. Sintaksa: `varijabla.getMonth()`.
+
+- Ispišite u konzolu rečenicu: `"Mjesec je: __., a vlaga je: __%."` Mjesec i vlagu zamijenite s vrijednostima iz varijabli koristeći interpolaciju stringova (template literals) sintaksu. _Primjer ispisa_: `"Mjesec je: 3., a vlaga je: 40%."`
+
+(MAX_TASK_POINTS = 2)
+
+**2.** Definirajte konstantu `PI` i dodijelite joj vrijednost broja π (3.14159). Dodajte novu varijablu `radijus` u koju ćete pohraniti proizvoljnu vrijednost radijusa cilindra. Dodajte i varijablu `visina` u koju ćete pohraniti proizvoljnu vrijednost visine cilindra. Ispišite u konzolu rečenice: `"Volumen cilindra je: ____ cm3, a površina iznosi ____ cm2."`.
+Volumen i površinu zamijenite s izračunatim vrijednostima koristeći interpolaciju stringova (template literals). Kada to napravite, ispišite sličnu rečenicu međutim s vrijednostima u kvadratnim milimetrima (mm2)
+
+(MAX_TASK_POINTS = 2)
+
+- Volumen: `π r² h`
+- Površina: `2 π r h + 2π r²`
+
+**3.** Kod kuće ste s obitelji i morate odlučiti koji film pogledati, a da svi budu zadovoljni. Dosjetili ste se jednog filma, no ne možete se dogovoriti hoćete li pogledati baš taj. Koristeći logičke operatore i operatore usporedbe, definirajte varijablu `film_odabran`. Svaki od članova obitelji ima po jedan uvjet za film:
+
+- Film mora trajati između 90 i 180 minuta.
+- Film mora imati minimalno ocjenu 7.5 na IMDB-u.
+- Film mora biti komedija ili akcijski film.
+- Film mora biti na engleskom jeziku.
+
+Za svaki od danih izraza deklarirajte varijable za ostvarenu vrijednost i ciljanu vrijednost, te boolean varijablu koja će sadržavati rezultat ostvarenja. Na primjer, za drugu izjavu varijable mogu biti: `min_ocjena_filma`, `ocjena_filma`, `ocjena_zadovoljena`.
+Kroz varijable definirajte izraz za svaki uvjet i na kraju ispišite rezultat u obliku `film_odabran = uvjet1 && uvjet2 && uvjet3 && uvjet4`, gdje `film_odabran` mora biti `true` ili `false`.
+(MAX_TASK_POINTS = 3)
+
+**4.** Raspišite sljedeće izraze bez korištenja `+=`, `-=`, `*=`, `/=`, `++` ili `--` operatora. (MAX_TASK_POINTS = 2)
+
+```javascript
+let a = 5;
+let b = 3;
+b += a; // Izmijenite izraz
+a -= b; // Izmijenite izraz
+b += 10 + a; // Izmijenite izraz
+a *= ++b; // Izmijenite izraz
+console.log(a); // -48
+console.log(b); // 16
+// Izmijenjeni izrazi moraju u konačnici moraju vratiti isti rezultat a i b varijabli kao i originalni izrazi.
+// Originalne izraze možete zakomentirati, a ispod njih napisati alternativni izraz (bez korištenja spomenutih operatora).
+```
+
+**5.** Napišite program koji uspoređuje duljinu dvije riječi i zatim ispisuje rezultat eksponencijalne operacije gdje je baza duljina dulje riječi, a eksponent duljina kraće riječi. (MAX_TASK_POINTS = 1)
