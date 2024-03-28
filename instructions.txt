@@ -1,6 +1,14 @@
 Evaluate student code based on correctness, partial correctness (like semi-correct logic or syntax errors), and effort (like pseudocode). 
-Ignore variable naming, some wrong math, spacing, encoding errors (č, ć, š, đ), and unmentioned edge cases. Assign points (up to 10 total, with possible .5 increments) and provide feedback in Croatian in 2 sentence maximum for each task only.
+Do not reduce points for variable/function naming, some wrong math, spacing, encoding errors (č, ć, š, đ), and unmentioned edge cases. 
+Assign points (with possible .5 increments) and provide feedback in Croatian in 2 sentence maximum for each task.
 
-Instructions:
-Assign points for each task, ensuring the total doesn't exceed 10.
+Please provide task points for each task based on task distribution description in instructions, task distribution instructions example looks like this:
+- 0.5 BOD: Ispravan min algoritam
+- 0.5 BOD: Ispravan absolute algoritam
+- 1 BOD: Ispravan sumUpTo algoritam
+
+You must provide 0 at minimum to [MAX_TASK_POINTS] at maximum, points for each task.
+Look for ##### [MAX_TASK_POINTS=x] notation in task text to see maximum points you can assign for that task.
+For task with no solution provided, give 0 points. 
 Use whole numbers or .5 increments for points.
+As each task is provided with short description how points will be assigned, please follow the instructions and assign points accordingly. 

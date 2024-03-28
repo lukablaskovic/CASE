@@ -113,10 +113,9 @@ def solutions_extracted(exam: str):
     return os.path.isdir(code_folder) and bool(os.listdir(code_folder))
 
 def extract_code_from_solutions(exam_folder, js=True, html=False):
-    
     if not os.listdir(exam_folder):
         return "The exam folder is empty. No code snippets to extract."
-    
+
     code_folder = os.path.join(exam_folder, "code_solutions")
     os.makedirs(code_folder, exist_ok=True)
 
@@ -126,6 +125,7 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
             with open(filepath, 'r', encoding="utf-8") as file:
                 data = json.load(file)
 
+            exam_group = data['examData']['exam_group']
             code_snippets = []
 
             for solution in data['examData']['exam_solutions']:
@@ -140,6 +140,7 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
 
             if code_snippets:
                 code_data = {
+                    "exam_group": exam_group,  # Include exam_group outside the snippets
                     "code_snippets": code_snippets
                 }
 
@@ -157,3 +158,5 @@ def extract_code_from_solutions(exam_folder, js=True, html=False):
                     json.dump(code_data, new_file, indent=4)
 
     return f"Code snippets have been extracted and saved in {code_folder}."
+
+
